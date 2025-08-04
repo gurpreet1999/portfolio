@@ -4,7 +4,8 @@ trigger:
       - main
 
 variables:
-- group: aws-secrets
+- group: aws-secrets     # Includes AWS creds for Terraform
+- group: docker-secrets  # Includes Docker Hub username/password
 
 stages:
 - stage: Terraform
@@ -22,17 +23,18 @@ stages:
         AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
         AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
 
-- stage: AnsibleDeploy
+- stage: DockerBuildAndPush
   dependsOn: Terraform
   jobs:
-  - job: DeployApp
+  - job: BuildAndPushDockerImage
     pool:
       vmImage: 'ubuntu-latest'
     steps:
     - checkout: self
-    - script:
-        ansible-playbook -i ansible/inventory ansible/deploy.yml
+    - script: |
+        docker build -t $(DOCKER_USERNAME)/portfolio-site:latest .
+        echo "$(DOCKER_PASSWORD)" | docker login -u "$(DOCKER_USERNAME)" --password-stdin
+        docker push $(DOCKER_USERNAME)/portfolio-site:latest
       env:
-        AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
-        AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
-
+        DOCKER_USERNAME: $(DOCKER_USERNAME)
+        DOCKER_PASSWORD: $(DOCKER_PASSWORD)
