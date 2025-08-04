@@ -1,0 +1,38 @@
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+- group: aws-secrets
+
+stages:
+- stage: Terraform
+  jobs:
+  - job: TerraformApply
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+    - script: |
+        cd terraform
+        terraform init
+        terraform apply -auto-approve
+      env:
+        AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+        AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+
+- stage: AnsibleDeploy
+  dependsOn: Terraform
+  jobs:
+  - job: DeployApp
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - checkout: self
+    - script:
+        ansible-playbook -i ansible/inventory ansible/deploy.yml
+      env:
+        AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+        AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+
