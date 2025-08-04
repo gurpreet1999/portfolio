@@ -5,7 +5,8 @@ trigger:
 
 variables:
 - group: aws-secrets       
-- group: docker-secrets   
+- group: docker-secrets  
+
 
 stages:
 
