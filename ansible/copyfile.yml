@@ -1,0 +1,9 @@
+- name: Copy scripts file to host
+  hosts: webserver
+  become: true  
+  tasks:
+    - name: Copying file
+      copy: 
+        src: /home/gurpreetsingh/scripts/processrunning.sh
+        dest: /home/ubuntu/scripts/processrunning.sh
+        mode: '0755'

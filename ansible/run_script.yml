@@ -1,0 +1,9 @@
+- name: Run script files
+  hosts: webserver
+  become: true  
+  tasks:
+    - name: Run process wala script
+      shell: ./processrunning.sh >> test.log
+      args: 
+         chdir: /home/ubuntu/scripts
+         creates: test.log

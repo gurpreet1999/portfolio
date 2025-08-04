@@ -1,0 +1,9 @@
+- name: cron-removal
+  hosts: webserver
+
+  tasks:
+    - name: remove cron
+      cron:
+        name: "run process wali file"
+        state: absent
+        user: root

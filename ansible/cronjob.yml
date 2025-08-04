@@ -1,0 +1,9 @@
+- name: cron-setup
+  hosts: webserver
+
+  tasks:
+    - name: Add cron job to run process script every minute
+      cron:
+        name: "run process wali file"
+        minute: "*/1"
+        job: "/home/ubuntu/scripts/processrunning.sh"
