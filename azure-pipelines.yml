@@ -1,18 +1,28 @@
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+- group: aws-secrets
+- group: docker-secrets
+
 stages:
 - stage: Terraform
   displayName: 'Provision Infra'
   jobs:
-  - job: TerraformApply
-    pool:
-      name: mypool
-    steps:
-    - checkout: self
+    - job: TerraformApply
+      displayName: 'Terraform Apply'
+      pool:
+        name: mypool
+      steps:
+        - checkout: self
 
-    - script: |
-        cd terraform
-        terraform version
-        terraform init
-        terraform apply -auto-approve
-      env:
-        AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
-        AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+        - script: |
+            cd terraform
+            terraform version
+            terraform init
+            terraform apply -auto-approve
+          env:
+            AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+            AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
