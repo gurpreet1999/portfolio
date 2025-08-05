@@ -19,7 +19,6 @@
       command: docker pull gurpreet1999/portfolio-site:latest
 
     - name: Run Docker container
-      command: docker run -d -p 80:80 --name portfolio-container --rm gurpreet1999/portfolio-site:latest
-      args:
-        warn: false
+      command: docker run -d -p 80:80 --name portfolio-container  gurpreet1999/portfolio-site:latest
+      
      
