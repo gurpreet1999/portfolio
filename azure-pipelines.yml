@@ -14,6 +14,7 @@ stages:
   displayName: 'Provision Infra'
   jobs:
     - job: TerraformApply
+      name: TerraformApply
       displayName: 'Terraform Apply'
       pool:
         name: mypool
@@ -21,12 +22,12 @@ stages:
         - checkout: self
 
         - script: |
-             cd terraform
-             yes | terraform init -reconfigure
-             terraform apply -auto-approve
-
-
-             terraform apply -auto-approve
+            cd terraform
+            yes | terraform init -reconfigure
+            terraform apply -auto-approve
+            EC2_IP=$(terraform output -raw webserver_ip)
+            echo "##vso[task.setvariable variable=EC2_PUBLIC_IP;isOutput=true]$EC2_IP"
+          name: SetTerraformOutput
           env:
             AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
             AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
@@ -60,6 +61,8 @@ stages:
       displayName: 'Deploy on EC2 with Ansible'
       pool:
         name: mypool
+      variables:
+        EC2_IP: $[ dependencies.Terraform.jobs.TerraformApply.outputs['SetTerraformOutput.EC2_PUBLIC_IP'] ]
       steps:
         - checkout: self
 
@@ -69,14 +72,9 @@ stages:
             secureFile: 'ok.pem'
 
         - script: |
-            cd terraform
-            terraform init
-            EC2_IP=$(terraform output -raw webserver_ip)
             echo "Using EC2 IP: $EC2_IP"
-
-            cp $(fetchPem.secureFilePath) ../ansible/ok.pem
-            chmod 600 ../ansible/ok.pem
-
-            cd ../ansible
+            cp $(fetchPem.secureFilePath) ./ansible/ok.pem
+            chmod 600 ./ansible/ok.pem
+            cd ansible
             ansible-playbook deploy.yml -i "$EC2_IP," -u ubuntu --private-key ok.pem
           displayName: 'Run Ansible Playbook'
