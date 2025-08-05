@@ -15,18 +15,11 @@
         state: started
         enabled: true
 
-    - name: Copy portfolio app in Dockerfile to EC2
-      copy:
-        src: ../portfolio/
-        dest: /home/ubuntu/portfolio/
-        owner: ubuntu
-        group: ubuntu
-        mode: '0755'
-
-    - name: Build Docker image
-      command: docker build -t portfolio-site .
-      args:
-        chdir: /home/ubuntu/portfolio/
+    - name: Pull portfolio image from Docker Hub
+      command: docker pull gurpreet1999/portfolio-site:latest
 
     - name: Run Docker container
-      command: docker run -d -p 80:80 --name portfolio-container portfolio-site
+      command: docker run -d -p 80:80 --name portfolio-container --rm gurpreet1999/portfolio-site:latest
+      args:
+        warn: false
+     

@@ -43,40 +43,67 @@
 #              docker tag portfolio-site gurpreet1999/portfolio-site:latest
 #              docker push gurpreet1999/portfolio-site
 
+
+
+# variables:
+# - group: aws-secrets
+# - group: docker-secrets
+
+# stages:
+# - stage: Docker
+#   displayName: 'Build Docker Image and Push'
+#   jobs:
+#     - job: DockerPush
+#       displayName: 'Docker Build and Push'
+#       pool:
+#         name: mypool
+#       steps:
+#         - checkout: self
+
+#         - script: |
+#             cd portfolio
+
+            
+#             echo $(DOCKER_PASSWORD) | docker login -u $(DOCKER_USERNAME) --password-stdin
+
+           
+#             docker build -t portfolio-site .
+
+           
+#             docker tag portfolio-site gurpreet1999/portfolio-site:latest
+
+            
+#             docker push gurpreet1999/portfolio-site:latest   "$EC2_IP,"
+#           displayName: 'Build and Push Docker Image'
+
 trigger:
   branches:
     include:
       - main
 
-variables:
-- group: aws-secrets
-- group: docker-secrets
+jobs:
+  - job: DeployWithAnsible
+    displayName: 'Deploy on EC2 with Ansible'
+    pool:
+      name: mypool
 
-stages:
-- stage: Docker
-  displayName: 'Build Docker Image and Push'
-  jobs:
-    - job: DockerPush
-      displayName: 'Docker Build and Push'
-      pool:
-        name: mypool
-      steps:
-        - checkout: self
+    steps:
+      - checkout: self
 
-        - script: |
-            cd portfolio
+      - task: DownloadSecureFile@1
+        name: fetchPem
+        inputs:
+          secureFile: 'ok.pem'
 
-            
-            echo $(DOCKER_PASSWORD) | docker login -u $(DOCKER_USERNAME) --password-stdin
+      - script: |
+          
+          cd terraform
+          EC2_IP=$(terraform output -raw webserver_ip)
 
-           
-            docker build -t portfolio-site .
+         
+          cp $(fetchPem.secureFilePath) ../ansible/ok.pem
+          chmod 600 ../ansible/ok.pem
 
-           
-            docker tag portfolio-site gurpreet1999/portfolio-site:latest
-
-            
-            docker push gurpreet1999/portfolio-site:latest
-          displayName: 'Build and Push Docker Image'
-
-
+         
+          ansible-playbook ../ansible/deploy.yml -i "13.233.53.185," -u ubuntu --private-key ../ansible/ok.pem
+        displayName: 'Run Ansible Playbook with Inline Inventory'
