@@ -22,7 +22,8 @@ stages:
 
         - script: |
             cd terraform
-            terraform init -input=false
+            terraform init -reconfigure -input=false
+
 
             terraform apply -auto-approve
           env:
