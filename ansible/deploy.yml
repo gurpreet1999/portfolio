@@ -1,5 +1,5 @@
 - name: Deploy portfolio to EC2
-  hosts: webserver
+  hosts: all
   become: true
 
   tasks:
