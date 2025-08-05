@@ -1,9 +1,15 @@
 terraform {
   required_providers {
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = "6.6.0"
     }
+  }
+
+  backend "s3" {
+    bucket = "terraformuse"
+    key    = "terraform.tfstate"
+    region = "ap-south-1"
   }
 }
 
@@ -25,4 +31,3 @@ module "ec2" {
   subnet_id         = module.vpc.subnet_id      
   security_group_id = module.security_group.webserversg_id 
 }
-

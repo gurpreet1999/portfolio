@@ -9,7 +9,7 @@ variables:
 
 stages:
 
-# ────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 - stage: Terraform
   displayName: 'Provision Infra'
   jobs:
@@ -24,14 +24,11 @@ stages:
             cd terraform
             terraform init
             terraform apply -auto-approve
-            EC2_IP=$(terraform output -raw webserver_ip)
-            echo "##vso[task.setvariable variable=EC2_PUBLIC_IP;isOutput=true]$EC2_IP"
-          name: SetTerraformOutput  # 👈 output variable scope
           env:
             AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
             AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
 
-# ────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 - stage: Docker
   displayName: 'Build Docker Image and Push'
   dependsOn: Terraform
@@ -51,17 +48,15 @@ stages:
             docker push gurpreet1999/portfolio-site:latest
           displayName: 'Build and Push Docker Image'
 
-# ────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 - stage: Ansible
   displayName: 'Deploy with Ansible'
-  dependsOn: Terraform
+  dependsOn: Docker
   jobs:
     - job: DeployWithAnsible
       displayName: 'Deploy on EC2 with Ansible'
       pool:
         name: mypool
-      variables:
-        EC2_IP: $[ dependencies.Terraform.outputs['TerraformApply.SetTerraformOutput.EC2_PUBLIC_IP'] ]
       steps:
         - checkout: self
 
@@ -71,9 +66,14 @@ stages:
             secureFile: 'ok.pem'
 
         - script: |
+            cd terraform
+            terraform init
+            EC2_IP=$(terraform output -raw webserver_ip)
             echo "Using EC2 IP: $EC2_IP"
-            cp $(fetchPem.secureFilePath) ./ansible/ok.pem
-            chmod 600 ./ansible/ok.pem
-            cd ansible
+
+            cp $(fetchPem.secureFilePath) ../ansible/ok.pem
+            chmod 600 ../ansible/ok.pem
+
+            cd ../ansible
             ansible-playbook deploy.yml -i "$EC2_IP," -u ubuntu --private-key ok.pem
           displayName: 'Run Ansible Playbook'
