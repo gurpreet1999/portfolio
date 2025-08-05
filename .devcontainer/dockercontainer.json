@@ -1,0 +1,16 @@
+{
+  "name": "Portfolio Dev Environment",
+  "build": {
+    "dockerfile": "dockerfile",
+    "context": ".."
+  },
+  "appPort": [80],
+  "runArgs": [
+    "--volume=${localWorkspaceFolder}/portfolio:/usr/share/nginx/html"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": []
+    }
+  }
+}
