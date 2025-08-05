@@ -21,11 +21,12 @@ stages:
         - checkout: self
 
         - script: |
-            cd terraform
-            terraform init -reconfigure -input=false
+             cd terraform
+             yes | terraform init -reconfigure
+             terraform apply -auto-approve
 
 
-            terraform apply -auto-approve
+             terraform apply -auto-approve
           env:
             AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
             AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
