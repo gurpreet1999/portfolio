@@ -22,7 +22,8 @@ stages:
 
         - script: |
             cd terraform
-            terraform init
+            terraform init -input=false
+
             terraform apply -auto-approve
           env:
             AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
