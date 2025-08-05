@@ -14,6 +14,7 @@ stages:
   displayName: 'Provision Infra'
   jobs:
     - job: TerraformApply
+      name: TerraformApply 
       displayName: 'Terraform Apply'
       pool:
         name: mypool
