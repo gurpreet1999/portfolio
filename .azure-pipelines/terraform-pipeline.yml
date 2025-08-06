@@ -28,7 +28,7 @@ stages:
             echo "Selected environment: ${{ parameters.environment }}"
             cd terraform
 
-            terraform init
+            terraform init -input=false
 
             terraform workspace select ${{ parameters.environment }} || terraform workspace new ${{ parameters.environment }}
 
