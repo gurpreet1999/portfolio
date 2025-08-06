@@ -1,0 +1,36 @@
+trigger: none
+
+parameters:
+  - name: ec2_ip
+    displayName: 'EC2 IP Address'
+    type: string
+    default: ''
+
+  - name: playbook_name
+    displayName: 'Ansible Playbook Name (e.g., copyfile.yml)'
+    type: string
+    default: 'copyfile.yml'
+
+stages:
+- stage: AnsibleScriptDeploy
+  displayName: 'Deploy Script using Ansible'
+  jobs:
+    - job: RunAnsiblePlaybook
+      displayName: 'Run Ansible Playbook on EC2'
+      pool:
+        name: mypool
+      steps:
+        - checkout: self
+
+        - task: DownloadSecureFile@1
+          name: fetchPem
+          inputs:
+            secureFile: 'ok.pem'
+
+        - script: |
+            echo "Running Ansible playbook '${{ parameters.playbook_name }}' on EC2 IP: ${{ parameters.ec2_ip }}"
+            cp $(fetchPem.secureFilePath) ansible/ok.pem
+            chmod 600 ansible/ok.pem
+            cd ansible
+            ansible-playbook ${{ parameters.playbook_name }} -i "${{ parameters.ec2_ip }}," -u ubuntu --private-key ok.pem
+          displayName: 'Run Ansible Playbook'

@@ -1,5 +1,5 @@
 - name: Copy scripts file to host
-  hosts: webserver
+  hosts: all
   become: true  
   tasks:
     - name: Copying file
