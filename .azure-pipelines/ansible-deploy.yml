@@ -1,44 +1,42 @@
-trigger: none
-
-resources:
-  pipelines:
-    - pipeline: dockerPipeline
-      source: Docker-push-image
-      trigger:
-        branches:
-          include:
-            - main
+trigger: none 
 
 parameters:
   - name: ec2_ip
-    type: string
-    default: ''
     displayName: 'EC2 IP Address'
-  - name: environment
     type: string
     default: ''
+
+  - name: environment
     displayName: 'Environment'
+    type: string
+    default: 'dev'
+    values:
+      - dev
+      - staging
+      - prod
 
 stages:
 - stage: AnsibleDeploy
   displayName: 'Deploy with Ansible'
-  condition: and(succeeded(), ne('${{ parameters.ec2_ip }}', ''))
   jobs:
     - deployment: DeployWithAnsible
       displayName: 'Deploy on EC2 with Ansible'
-      environment: ${{ parameters.environment }}
+      environment: ${{ parameters.environment }}  
       pool:
-        name: mypool
+        name: mypool  
       strategy:
         runOnce:
           deploy:
             steps:
               - checkout: self
+
               - task: DownloadSecureFile@1
                 name: fetchPem
                 inputs:
-                  secureFile: 'ok.pem'
+                  secureFile: 'ok.pem'  
+
               - script: |
+                  echo "Deploying to EC2 IP: ${{ parameters.ec2_ip }}"
                   cp $(fetchPem.secureFilePath) ansible/ok.pem
                   chmod 600 ansible/ok.pem
                   cd ansible
