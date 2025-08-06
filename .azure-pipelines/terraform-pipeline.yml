@@ -8,33 +8,38 @@ parameters:
       - staging
       - prod
 
-trigger: none 
+trigger: none
+
+variables:
+- group: aws-secret  
 
 stages:
 - stage: Terraform
   displayName: 'Provision Infrastructure'
   jobs:
-  - job: TerraformApply
-    displayName: 'Terraform Apply'
-    pool:
-      name: mypool 
-    steps:
-    - checkout: self
-
-
-
-    - script: |
-        echo "Selected environment: ${{ parameters.environment }}"
-        cd terraform
-
-        terraform init
-
-        terraform workspace select ${{ parameters.environment }} || terraform workspace new ${{ parameters.environment }}
-
-        terraform apply -auto-approve 
-
-        terraform output -json > output.json
+    - job: TerraformApply
       displayName: 'Terraform Init, Plan, Apply'
+      pool:
+        name: mypool
+      steps:
+        - checkout: self
 
-    - publish: terraform/output.json
-      artifact: terraformOutput
+        - script: |
+            echo "Selected environment: ${{ parameters.environment }}"
+            cd terraform
+
+            terraform init
+
+            terraform workspace select ${{ parameters.environment }} || terraform workspace new ${{ parameters.environment }}
+
+            terraform apply -auto-approve
+
+            terraform output -json > output.json
+          displayName: 'Terraform Init, Plan, Apply'
+          env:
+            AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+            AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+            AWS_DEFAULT_REGION: 'ap-south-1'
+
+        - publish: terraform/output.json
+          artifact: terraformOutput
