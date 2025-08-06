@@ -3,7 +3,7 @@ trigger: none
 resources:
   pipelines:
     - pipeline: dockerPipeline
-      source: docker-build
+      source: Docker-push-image
       trigger:
         branches:
           include:
