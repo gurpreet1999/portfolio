@@ -9,7 +9,7 @@ variable "instance_type" {
 locals {
   environment     = terraform.workspace
   instance_type = (
-    terraform.workspace == "dev"   ? "t2.micro" :
+    terraform.workspace == "dev"   ? "t2.nano" :
     terraform.workspace == "staging" ? "t3.medium" :
     "t3.large"
   )
