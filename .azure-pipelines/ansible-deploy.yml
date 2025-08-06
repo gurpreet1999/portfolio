@@ -1,0 +1,54 @@
+trigger: none 
+
+resources:
+  pipelines:
+    - pipeline: dockerPipeline  
+      source: docker-build   
+      trigger:
+        branches:
+          include:
+            - main
+
+
+stages:
+- stage: AnsibleDeploy
+  displayName: 'Deploy with Ansible'
+  jobs:
+    - deployment: DeployWithAnsible
+      displayName: 'Deploy on EC2 with Ansible'
+      environment:
+        name: 'PRODUCTION' 
+      pool:
+        name: mypool
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - checkout: self
+
+            
+              - download: current
+                artifact: terraformOutput
+
+             
+              
+             
+              - script: |
+                  EC2_IP=$(jq -r '.webserver_ip.value' terraformOutput/output.json)
+                  echo "Using EC2 IP: $EC2_IP"
+                  echo "##vso[task.setvariable variable=EC2_IP]$EC2_IP"
+                displayName: 'Parse EC2 IP from Terraform output'
+
+              
+              - task: DownloadSecureFile@1
+                name: fetchPem
+                inputs:
+                  secureFile: 'ok.pem'
+
+           
+              - script: |
+                  cp $(fetchPem.secureFilePath) ansible/ok.pem
+                  chmod 600 ansible/ok.pem
+                  cd ansible
+                  ansible-playbook deploy.yml -i "$EC2_IP," -u ubuntu --private-key ok.pem
+                displayName: 'Run Ansible Playbook'

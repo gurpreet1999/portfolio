@@ -30,4 +30,5 @@ module "ec2" {
   source            = "./modules/ec2"
   subnet_id         = module.vpc.subnet_id      
   security_group_id = module.security_group.webserversg_id 
+  instance_type     = local.instance_type
 }

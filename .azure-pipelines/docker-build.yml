@@ -1,0 +1,26 @@
+trigger:
+  branches:
+    include:
+      - main
+
+variables:
+  - group: docker-secrets
+
+stages:
+- stage: Docker
+  displayName: 'Build Docker Image and Push'
+  jobs:
+    - job: DockerPush
+      displayName: 'Docker Build and Push'
+      pool:
+        name: mypool
+      steps:
+        - checkout: self
+
+        - script: |
+            cd portfolio
+            echo $(DOCKER_PASSWORD) | docker login -u $(DOCKER_USERNAME) --password-stdin
+            docker build -t portfolio-site .
+            docker tag portfolio-site gurpreet1999/portfolio-site:latest
+            docker push gurpreet1999/portfolio-site:latest
+          displayName: 'Build and Push Docker Image'
